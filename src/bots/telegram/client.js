@@ -42,7 +42,7 @@ const { BOT_TOKEN } = config;
 const client = new Telegraf(BOT_TOKEN);
 
 class Name {
-  static from(user: Telegram$User): string {
+  static user(user: Telegram$User): string {
     if (user.username) {
       return user.username;
     }
@@ -52,6 +52,26 @@ class Name {
     }
 
     return user.first_name;
+  }
+
+  static chat(chat: Telegram$Chat): string {
+    if (chat.username) {
+      return chat.username;
+    }
+
+    if (chat.title) {
+      return chat.title;
+    }
+
+    if (chat.first_name && chat.last_name) {
+      return `${chat.first_name} ${chat.last_name}`;
+    }
+
+    if (chat.first_name) {
+      return chat.first_name;
+    }
+
+    return `[Chat${chat.id}]`;
   }
 }
 
@@ -80,7 +100,7 @@ class ReplyToMessage extends Message {
       return ['', ''];
     }
 
-    const nick = Name.from(replyToMessage.from);
+    const nick = Name.user(replyToMessage.from);
     const sticker = replyToMessage.sticker;
     let message = replyToMessage.text || '';
 
@@ -114,7 +134,7 @@ class ForwardedMessage extends Message {
       return '';
     }
 
-    const nick = Name.from(msg.forward_from);
+    const nick = Name.user(msg.forward_from);
 
     // adds quoting brackets
     const message = msg.text ? msg.text.replace(/\n/g, '\n>> ') : '';
@@ -186,7 +206,7 @@ function prepareEmittingMessageDetails(message: Telegram$Message) {
     return null;
   }
 
-  const name = Name.from(message.from);
+  const name = Name.user(message.from);
   const msg = prepareMessage(message);
 
   return { network: botNetwork, room, name, message: msg };
